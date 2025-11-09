@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useContext } from 'react';
 import {
   Drawer,
   List,
@@ -10,6 +10,7 @@ import {
   Box,
   IconButton,
   Tooltip,
+  Divider,
 } from '@mui/material';
 import {
   Security,
@@ -18,8 +19,12 @@ import {
   Public,
   ChevronLeft,
   ChevronRight,
+  LightMode,
+  DarkMode,
+  SettingsBrightness,
 } from '@mui/icons-material';
 import type { View } from '../App';
+import { ColorModeContext } from '../index';
 
 interface SidebarProps {
   currentView: View;
@@ -32,6 +37,7 @@ const drawerWidthCollapsed = 72;
 
 const Sidebar: React.FC<SidebarProps> = ({ currentView, setCurrentView, hasAnalysis }) => {
   const [isCollapsed, setIsCollapsed] = useState(false);
+  const colorMode = useContext(ColorModeContext);
 
   const navItems = [
     { id: 'awareness', icon: <BarChart />, label: 'Situational Awareness' },
@@ -41,6 +47,32 @@ const Sidebar: React.FC<SidebarProps> = ({ currentView, setCurrentView, hasAnaly
 
   const toggleDrawer = () => {
     setIsCollapsed(!isCollapsed);
+  };
+
+  const getThemeIcon = () => {
+    switch (colorMode.mode) {
+      case 'light':
+        return <LightMode />;
+      case 'dark':
+        return <DarkMode />;
+      case 'system':
+        return <SettingsBrightness />;
+      default:
+        return <SettingsBrightness />;
+    }
+  };
+
+  const getThemeLabel = () => {
+    switch (colorMode.mode) {
+      case 'light':
+        return 'Light Mode';
+      case 'dark':
+        return 'Dark Mode';
+      case 'system':
+        return 'System Theme';
+      default:
+        return 'System Theme';
+    }
   };
 
   return (
@@ -53,7 +85,6 @@ const Sidebar: React.FC<SidebarProps> = ({ currentView, setCurrentView, hasAnaly
         '& .MuiDrawer-paper': {
           width: isCollapsed ? drawerWidthCollapsed : drawerWidthExpanded,
           boxSizing: 'border-box',
-          backgroundColor: '#F7F2FA',
           borderRight: 'none',
           transition: 'width 0.3s cubic-bezier(0.2, 0, 0, 1)',
           overflowX: 'hidden',
@@ -151,6 +182,42 @@ const Sidebar: React.FC<SidebarProps> = ({ currentView, setCurrentView, hasAnaly
       </List>
 
       <Box sx={{ flexGrow: 1 }} />
+
+      <Divider sx={{ mx: 2 }} />
+
+      {/* Theme Toggle */}
+      <Box sx={{ px: 1, py: 2 }}>
+        <Tooltip title={isCollapsed ? getThemeLabel() : ''} placement="right" arrow>
+          <ListItemButton
+            onClick={colorMode.toggleColorMode}
+            sx={{
+              justifyContent: isCollapsed ? 'center' : 'flex-start',
+              px: isCollapsed ? 1.5 : 2,
+              py: 1.5,
+              minHeight: 56,
+            }}
+          >
+            <ListItemIcon
+              sx={{
+                minWidth: isCollapsed ? 'auto' : 56,
+                justifyContent: 'center',
+                color: 'text.secondary',
+              }}
+            >
+              {getThemeIcon()}
+            </ListItemIcon>
+            {!isCollapsed && (
+              <ListItemText
+                primary={getThemeLabel()}
+                primaryTypographyProps={{
+                  fontSize: '0.875rem',
+                  fontWeight: 500,
+                }}
+              />
+            )}
+          </ListItemButton>
+        </Tooltip>
+      </Box>
 
       {isCollapsed && (
         <Box sx={{ p: 2, display: 'flex', justifyContent: 'center' }}>

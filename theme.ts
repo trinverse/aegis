@@ -1,10 +1,11 @@
-import { createTheme, alpha } from '@mui/material/styles';
+import { createTheme, alpha, PaletteMode } from '@mui/material/styles';
 
 // Material Design 3 (Material You) Theme
 // Inspired by https://m3.material.io/ with vibrant, bright colors
-const theme = createTheme({
+
+export const getTheme = (mode: PaletteMode) => createTheme({
   palette: {
-    mode: 'light',
+    mode,
     primary: {
       main: '#6750A4',      // M3 Primary - vibrant purple
       light: '#9A82DB',
@@ -33,7 +34,7 @@ const theme = createTheme({
       main: '#F9A825',      // Vibrant amber
       light: '#FBC02D',
       dark: '#C67100',
-      contrastText: '#000000',
+      contrastText: mode === 'light' ? '#000000' : '#FFFFFF',
     },
     info: {
       main: '#0B57D0',      // M3 Info - vibrant blue
@@ -48,21 +49,21 @@ const theme = createTheme({
       contrastText: '#FFFFFF',
     },
     background: {
-      default: '#FEF7FF',   // M3 Surface - light purple tint
-      paper: '#FFFFFF',
+      default: mode === 'light' ? '#FEF7FF' : '#1C1B1F',   // M3 Surface
+      paper: mode === 'light' ? '#FFFFFF' : '#2B2930',
     },
     surface: {
-      main: '#FFFFFF',
-      variant: '#E7E0EC',   // M3 Surface variant
+      main: mode === 'light' ? '#FFFFFF' : '#2B2930',
+      variant: mode === 'light' ? '#E7E0EC' : '#49454F',   // M3 Surface variant
     },
     outline: {
-      main: '#79747E',      // M3 Outline
-      variant: '#C4C7C5',
+      main: mode === 'light' ? '#79747E' : '#938F99',      // M3 Outline
+      variant: mode === 'light' ? '#C4C7C5' : '#49454F',
     },
     text: {
-      primary: '#1D1B20',   // M3 On Surface
-      secondary: '#49454F', // M3 On Surface Variant
-      disabled: '#79747E',
+      primary: mode === 'light' ? '#1D1B20' : '#E6E1E5',   // M3 On Surface
+      secondary: mode === 'light' ? '#49454F' : '#CAC4D0', // M3 On Surface Variant
+      disabled: mode === 'light' ? '#79747E' : '#938F99',
     },
   },
   shape: {
@@ -155,23 +156,37 @@ const theme = createTheme({
   shadows: [
     'none',
     // Elevation 1 - M3 Shadow
-    '0px 1px 2px rgba(0, 0, 0, 0.3), 0px 1px 3px 1px rgba(0, 0, 0, 0.15)',
+    mode === 'light'
+      ? '0px 1px 2px rgba(0, 0, 0, 0.3), 0px 1px 3px 1px rgba(0, 0, 0, 0.15)'
+      : '0px 1px 3px 1px rgba(0, 0, 0, 0.5), 0px 1px 2px rgba(0, 0, 0, 0.4)',
     // Elevation 2
-    '0px 1px 2px rgba(0, 0, 0, 0.3), 0px 2px 6px 2px rgba(0, 0, 0, 0.15)',
+    mode === 'light'
+      ? '0px 1px 2px rgba(0, 0, 0, 0.3), 0px 2px 6px 2px rgba(0, 0, 0, 0.15)'
+      : '0px 2px 6px 2px rgba(0, 0, 0, 0.5), 0px 1px 2px rgba(0, 0, 0, 0.4)',
     // Elevation 3
-    '0px 4px 8px 3px rgba(0, 0, 0, 0.15), 0px 1px 3px rgba(0, 0, 0, 0.3)',
+    mode === 'light'
+      ? '0px 4px 8px 3px rgba(0, 0, 0, 0.15), 0px 1px 3px rgba(0, 0, 0, 0.3)'
+      : '0px 4px 8px 3px rgba(0, 0, 0, 0.5), 0px 1px 3px rgba(0, 0, 0, 0.4)',
     // Elevation 4
-    '0px 6px 10px 4px rgba(0, 0, 0, 0.15), 0px 2px 3px rgba(0, 0, 0, 0.3)',
+    mode === 'light'
+      ? '0px 6px 10px 4px rgba(0, 0, 0, 0.15), 0px 2px 3px rgba(0, 0, 0, 0.3)'
+      : '0px 6px 10px 4px rgba(0, 0, 0, 0.5), 0px 2px 3px rgba(0, 0, 0, 0.4)',
     // Elevation 5
-    '0px 8px 12px 6px rgba(0, 0, 0, 0.15), 0px 4px 4px rgba(0, 0, 0, 0.3)',
+    mode === 'light'
+      ? '0px 8px 12px 6px rgba(0, 0, 0, 0.15), 0px 4px 4px rgba(0, 0, 0, 0.3)'
+      : '0px 8px 12px 6px rgba(0, 0, 0, 0.5), 0px 4px 4px rgba(0, 0, 0, 0.4)',
     // Keep the rest of the default shadows
-    ...Array(19).fill('0px 8px 12px 6px rgba(0, 0, 0, 0.15), 0px 4px 4px rgba(0, 0, 0, 0.3)'),
+    ...Array(19).fill(
+      mode === 'light'
+        ? '0px 8px 12px 6px rgba(0, 0, 0, 0.15), 0px 4px 4px rgba(0, 0, 0, 0.3)'
+        : '0px 8px 12px 6px rgba(0, 0, 0, 0.5), 0px 4px 4px rgba(0, 0, 0, 0.4)'
+    ),
   ],
   components: {
     MuiCssBaseline: {
       styleOverrides: {
         body: {
-          backgroundColor: '#FEF7FF',
+          backgroundColor: mode === 'light' ? '#FEF7FF' : '#1C1B1F',
           backgroundImage: 'none',
         },
       },
@@ -194,9 +209,13 @@ const theme = createTheme({
           transition: 'all 0.2s cubic-bezier(0.2, 0, 0, 1)',
         },
         contained: {
-          boxShadow: '0px 1px 2px rgba(0, 0, 0, 0.3), 0px 1px 3px 1px rgba(0, 0, 0, 0.15)',
+          boxShadow: mode === 'light'
+            ? '0px 1px 2px rgba(0, 0, 0, 0.3), 0px 1px 3px 1px rgba(0, 0, 0, 0.15)'
+            : '0px 1px 3px 1px rgba(0, 0, 0, 0.5), 0px 1px 2px rgba(0, 0, 0, 0.4)',
           '&:hover': {
-            boxShadow: '0px 1px 2px rgba(0, 0, 0, 0.3), 0px 2px 6px 2px rgba(0, 0, 0, 0.15)',
+            boxShadow: mode === 'light'
+              ? '0px 1px 2px rgba(0, 0, 0, 0.3), 0px 2px 6px 2px rgba(0, 0, 0, 0.15)'
+              : '0px 2px 6px 2px rgba(0, 0, 0, 0.5), 0px 1px 2px rgba(0, 0, 0, 0.4)',
           },
         },
         outlined: {
@@ -212,10 +231,14 @@ const theme = createTheme({
         root: {
           backgroundImage: 'none',
           borderRadius: 16,
-          boxShadow: '0px 1px 2px rgba(0, 0, 0, 0.3), 0px 1px 3px 1px rgba(0, 0, 0, 0.15)',
+          boxShadow: mode === 'light'
+            ? '0px 1px 2px rgba(0, 0, 0, 0.3), 0px 1px 3px 1px rgba(0, 0, 0, 0.15)'
+            : '0px 1px 3px 1px rgba(0, 0, 0, 0.5), 0px 1px 2px rgba(0, 0, 0, 0.4)',
           transition: 'all 0.2s cubic-bezier(0.2, 0, 0, 1)',
           '&:hover': {
-            boxShadow: '0px 1px 2px rgba(0, 0, 0, 0.3), 0px 2px 6px 2px rgba(0, 0, 0, 0.15)',
+            boxShadow: mode === 'light'
+              ? '0px 1px 2px rgba(0, 0, 0, 0.3), 0px 2px 6px 2px rgba(0, 0, 0, 0.15)'
+              : '0px 2px 6px 2px rgba(0, 0, 0, 0.5), 0px 1px 2px rgba(0, 0, 0, 0.4)',
           },
         },
       },
@@ -241,8 +264,11 @@ const theme = createTheme({
       styleOverrides: {
         paper: {
           backgroundImage: 'none',
+          backgroundColor: mode === 'light' ? '#F7F2FA' : '#1C1B1F',
           borderRight: 'none',
-          boxShadow: '0px 1px 2px rgba(0, 0, 0, 0.3), 0px 1px 3px 1px rgba(0, 0, 0, 0.15)',
+          boxShadow: mode === 'light'
+            ? '0px 1px 2px rgba(0, 0, 0, 0.3), 0px 1px 3px 1px rgba(0, 0, 0, 0.15)'
+            : '0px 1px 3px 1px rgba(0, 0, 0, 0.5), 0px 1px 2px rgba(0, 0, 0, 0.4)',
         },
       },
     },
@@ -255,13 +281,13 @@ const theme = createTheme({
           marginBottom: 4,
           transition: 'all 0.2s cubic-bezier(0.2, 0, 0, 1)',
           '&.Mui-selected': {
-            backgroundColor: alpha('#6750A4', 0.12),
+            backgroundColor: alpha('#6750A4', mode === 'light' ? 0.12 : 0.2),
             '&:hover': {
-              backgroundColor: alpha('#6750A4', 0.16),
+              backgroundColor: alpha('#6750A4', mode === 'light' ? 0.16 : 0.24),
             },
           },
           '&:hover': {
-            backgroundColor: alpha('#6750A4', 0.08),
+            backgroundColor: alpha('#6750A4', mode === 'light' ? 0.08 : 0.12),
           },
         },
       },
@@ -274,7 +300,7 @@ const theme = createTheme({
             transition: 'all 0.2s cubic-bezier(0.2, 0, 0, 1)',
             '&:hover': {
               '& .MuiOutlinedInput-notchedOutline': {
-                borderColor: '#79747E',
+                borderColor: mode === 'light' ? '#79747E' : '#938F99',
               },
             },
             '&.Mui-focused': {
@@ -300,20 +326,20 @@ const theme = createTheme({
           borderRadius: 12,
         },
         standardSuccess: {
-          backgroundColor: alpha('#188038', 0.1),
-          color: '#0D652D',
+          backgroundColor: alpha('#188038', mode === 'light' ? 0.1 : 0.2),
+          color: mode === 'light' ? '#0D652D' : '#34A853',
         },
         standardError: {
-          backgroundColor: alpha('#B3261E', 0.1),
-          color: '#8C1D18',
+          backgroundColor: alpha('#B3261E', mode === 'light' ? 0.1 : 0.2),
+          color: mode === 'light' ? '#8C1D18' : '#DC362E',
         },
         standardWarning: {
-          backgroundColor: alpha('#F9A825', 0.1),
-          color: '#C67100',
+          backgroundColor: alpha('#F9A825', mode === 'light' ? 0.1 : 0.2),
+          color: mode === 'light' ? '#C67100' : '#FBC02D',
         },
         standardInfo: {
-          backgroundColor: alpha('#0B57D0', 0.1),
-          color: '#0842A0',
+          backgroundColor: alpha('#0B57D0', mode === 'light' ? 0.1 : 0.2),
+          color: mode === 'light' ? '#0842A0' : '#4285F4',
         },
       },
     },
@@ -360,4 +386,5 @@ declare module '@mui/material/styles' {
   }
 }
 
-export default theme;
+// Export default light theme for backward compatibility
+export default getTheme('light');

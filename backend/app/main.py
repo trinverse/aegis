@@ -6,6 +6,7 @@ import os
 from dotenv import load_dotenv
 import google.generativeai as genai
 import json
+import re
 
 # Load environment variables
 load_dotenv()
@@ -87,6 +88,17 @@ generation_config = {
     "max_output_tokens": 8192,
 }
 
+def clean_json_response(text: str) -> str:
+    """Clean JSON response from Gemini API by removing markdown code blocks and comments."""
+    # Remove markdown code blocks
+    text = re.sub(r'```json\s*', '', text)
+    text = re.sub(r'```\s*$', '', text)
+    # Remove // style comments
+    text = re.sub(r'//.*$', '', text, flags=re.MULTILINE)
+    # Remove trailing commas before closing braces/brackets
+    text = re.sub(r',(\s*[}\]])', r'\1', text)
+    return text.strip()
+
 @app.get("/")
 async def root():
     return {"message": "Aegis Emergency Management API", "status": "running"}
@@ -118,7 +130,8 @@ Respond ONLY with valid JSON matching this exact structure:
 }}"""
 
         response = model.generate_content(prompt)
-        result = json.loads(response.text)
+        cleaned_text = clean_json_response(response.text)
+        result = json.loads(cleaned_text)
         return AnalysisResult(**result)
     except Exception as e:
         import traceback
@@ -160,8 +173,11 @@ Provide a JSON response with the following structure:
 }}"""
 
         response = model.generate_content(prompt)
-        result = json.loads(response.text)
+        cleaned_text = clean_json_response(response.text)
+        result = json.loads(cleaned_text)
         return ImpactForecast(**result)
+    except json.JSONDecodeError as e:
+        raise HTTPException(status_code=500, detail=f"Error parsing JSON response: {str(e)}. Raw response: {response.text[:500]}")
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error generating impact forecast: {str(e)}")
 
@@ -195,7 +211,8 @@ Provide a JSON response with the following structure:
 }}"""
 
         response = model.generate_content(prompt)
-        result = json.loads(response.text)
+        cleaned_text = clean_json_response(response.text)
+        result = json.loads(cleaned_text)
         return TeamBriefing(**result)
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error generating team briefing: {str(e)}")
@@ -234,7 +251,8 @@ Provide a JSON response with the following structure:
 }}"""
 
         response = model.generate_content(prompt)
-        result = json.loads(response.text)
+        cleaned_text = clean_json_response(response.text)
+        result = json.loads(cleaned_text)
         return TrainingScenario(**result)
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error generating training scenario: {str(e)}")
