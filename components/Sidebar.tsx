@@ -1,9 +1,25 @@
-import React from 'react';
+import React, { useState } from 'react';
+import {
+  Drawer,
+  List,
+  ListItem,
+  ListItemButton,
+  ListItemIcon,
+  ListItemText,
+  Typography,
+  Box,
+  IconButton,
+  Tooltip,
+} from '@mui/material';
+import {
+  Security,
+  BarChart,
+  People,
+  Public,
+  ChevronLeft,
+  ChevronRight,
+} from '@mui/icons-material';
 import type { View } from '../App';
-import DashboardIcon from './icons/DashboardIcon';
-import PreparednessIcon from './icons/PreparednessIcon';
-import OperationsIcon from './icons/OperationsIcon';
-
 
 interface SidebarProps {
   currentView: View;
@@ -11,46 +27,149 @@ interface SidebarProps {
   hasAnalysis: boolean;
 }
 
+const drawerWidthExpanded = 240;
+const drawerWidthCollapsed = 72;
+
 const Sidebar: React.FC<SidebarProps> = ({ currentView, setCurrentView, hasAnalysis }) => {
+  const [isCollapsed, setIsCollapsed] = useState(false);
+
   const navItems = [
-    { id: 'awareness', icon: DashboardIcon, label: 'Situational Awareness' },
-    { id: 'operations', icon: OperationsIcon, label: 'Operations Hub', disabled: !hasAnalysis },
-    { id: 'preparedness', icon: PreparednessIcon, label: 'Public Preparedness' },
+    { id: 'awareness', icon: <BarChart />, label: 'Situational Awareness' },
+    { id: 'operations', icon: <People />, label: 'Operations Hub', disabled: !hasAnalysis },
+    { id: 'preparedness', icon: <Public />, label: 'Public Preparedness' },
   ];
 
+  const toggleDrawer = () => {
+    setIsCollapsed(!isCollapsed);
+  };
+
   return (
-    <nav className="w-16 md:w-64 bg-gray-900 border-r border-gray-700/50 p-2 md:p-4 flex flex-col justify-between">
-      <div>
-        <div className="flex items-center justify-center md:justify-start gap-3 p-2 mb-8">
-          <svg className="w-8 h-8 text-blue-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126ZM12 15.75h.008v.008H12v-.008Z" />
-          </svg>
-          <h1 className="text-xl font-bold hidden md:block">Aegis AI</h1>
-        </div>
-        <ul>
-          {navItems.map((item) => (
-            <li key={item.id}>
-              <button
+    <Drawer
+      variant="permanent"
+      sx={{
+        width: isCollapsed ? drawerWidthCollapsed : drawerWidthExpanded,
+        flexShrink: 0,
+        transition: 'width 0.3s cubic-bezier(0.2, 0, 0, 1)',
+        '& .MuiDrawer-paper': {
+          width: isCollapsed ? drawerWidthCollapsed : drawerWidthExpanded,
+          boxSizing: 'border-box',
+          backgroundColor: '#F7F2FA',
+          borderRight: 'none',
+          transition: 'width 0.3s cubic-bezier(0.2, 0, 0, 1)',
+          overflowX: 'hidden',
+        },
+      }}
+    >
+      <Box
+        sx={{
+          p: 2,
+          pt: 3,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          minHeight: 80,
+        }}
+      >
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
+          <Box
+            sx={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              width: 40,
+              height: 40,
+              borderRadius: 2,
+              background: 'linear-gradient(135deg, #6750A4 0%, #9A82DB 100%)',
+              boxShadow: '0px 4px 8px rgba(103, 80, 164, 0.3)',
+            }}
+          >
+            <Security sx={{ color: 'white', fontSize: '1.5rem' }} />
+          </Box>
+          {!isCollapsed && (
+            <Typography
+              variant="h6"
+              component="h1"
+              sx={{
+                fontWeight: 600,
+                whiteSpace: 'nowrap',
+                background: 'linear-gradient(135deg, #6750A4 0%, #9A82DB 100%)',
+                backgroundClip: 'text',
+                WebkitBackgroundClip: 'text',
+                WebkitTextFillColor: 'transparent',
+              }}
+            >
+              Aegis AI
+            </Typography>
+          )}
+        </Box>
+        {!isCollapsed && (
+          <Tooltip title="Collapse" placement="right" arrow>
+            <IconButton onClick={toggleDrawer} size="small" sx={{ color: 'primary.main' }}>
+              <ChevronLeft />
+            </IconButton>
+          </Tooltip>
+        )}
+      </Box>
+
+      <List sx={{ px: 1, pt: 2 }}>
+        {navItems.map((item) => (
+          <ListItem key={item.id} disablePadding sx={{ mb: 0.5 }}>
+            <Tooltip title={isCollapsed ? item.label : ''} placement="right" arrow>
+              <ListItemButton
+                selected={currentView === item.id}
                 onClick={() => setCurrentView(item.id as View)}
                 disabled={item.disabled}
-                className={`w-full flex items-center gap-3 p-3 my-1 rounded-lg transition-colors text-sm font-medium ${
-                  currentView === item.id
-                    ? 'bg-blue-600 text-white'
-                    : 'text-gray-400 hover:bg-gray-700/50 hover:text-white'
-                } ${item.disabled ? 'opacity-50 cursor-not-allowed' : ''}`}
+                sx={{
+                  justifyContent: isCollapsed ? 'center' : 'flex-start',
+                  px: isCollapsed ? 1.5 : 2,
+                  py: 1.5,
+                  minHeight: 56,
+                }}
               >
-                <item.icon className="w-6 h-6 flex-shrink-0" />
-                <span className="hidden md:block">{item.label}</span>
-              </button>
-            </li>
-          ))}
-        </ul>
-      </div>
-       <div className="p-2 text-center text-xs text-gray-500 hidden md:block">
-          <p>&copy; 2024 Aegis AI Systems</p>
-          <p>Emergency Management Redefined</p>
-        </div>
-    </nav>
+                <ListItemIcon
+                  sx={{
+                    minWidth: isCollapsed ? 'auto' : 56,
+                    justifyContent: 'center',
+                    color: currentView === item.id ? 'primary.main' : 'text.secondary',
+                  }}
+                >
+                  {item.icon}
+                </ListItemIcon>
+                {!isCollapsed && (
+                  <ListItemText
+                    primary={item.label}
+                    primaryTypographyProps={{
+                      fontSize: '0.875rem',
+                      fontWeight: currentView === item.id ? 600 : 500,
+                    }}
+                  />
+                )}
+              </ListItemButton>
+            </Tooltip>
+          </ListItem>
+        ))}
+      </List>
+
+      <Box sx={{ flexGrow: 1 }} />
+
+      {isCollapsed && (
+        <Box sx={{ p: 2, display: 'flex', justifyContent: 'center' }}>
+          <Tooltip title="Expand" placement="right" arrow>
+            <IconButton onClick={toggleDrawer} size="small" sx={{ color: 'primary.main' }}>
+              <ChevronRight />
+            </IconButton>
+          </Tooltip>
+        </Box>
+      )}
+
+      {!isCollapsed && (
+        <Box sx={{ p: 3, textAlign: 'center' }}>
+          <Typography variant="caption" color="text.secondary" sx={{ fontSize: '0.7rem' }}>
+            &copy; 2025 Aegis AI Systems
+          </Typography>
+        </Box>
+      )}
+    </Drawer>
   );
 };
 

@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Layout Test</title>
+    <style>
+        body {
+            margin: 0;
+            font-family: Arial, sans-serif;
+        }
+        .container {
+            display: flex;
+            height: 100vh;
+        }
+        .sidebar {
+            width: 240px;
+            background: #1a1a1a;
+            color: white;
+            padding: 20px;
+            transition: width 0.3s;
+        }
+        .sidebar.collapsed {
+            width: 72px;
+        }
+        .main {
+            flex: 1;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .grid {
+            display: flex;
+            gap: 24px;
+        }
+        .column {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .left {
+            flex: 0 0 41.67%; /* 5/12 */
+        }
+        .right {
+            flex: 0 0 58.33%; /* 7/12 */
+        }
+
+        /* Material-UI md breakpoint is 900px */
+        @media (max-width: 899px) {
+            .grid {
+                flex-direction: column;
+            }
+            .left, .right {
+                flex: 1 1 100%;
+            }
+        }
+
+        .info {
+            position: fixed;
+            top: 10px;
+            right: 10px;
+            background: rgba(0,0,0,0.8);
+            color: white;
+            padding: 10px;
+            border-radius: 4px;
+            z-index: 1000;
+        }
+    </style>
+</head>
+<body>
+    <div class="info">
+        <div>Viewport: <span id="viewport">--</span></div>
+        <div>Available: <span id="available">--</span></div>
+        <div>Breakpoint: <span id="breakpoint">--</span></div>
+    </div>
+
+    <div class="container">
+        <div class="sidebar" id="sidebar">
+            <h3>Sidebar</h3>
+            <button onclick="toggleSidebar()">Toggle</button>
+            <p id="sidebar-width">240px</p>
+        </div>
+        <div class="main">
+            <h2>Situational Awareness</h2>
+            <div class="grid">
+                <div class="column left">
+                    <h3>Incident Report Form</h3>
+                    <p>This panel contains the form fields</p>
+                    <p>Width ratio: 5/12 (41.67%)</p>
+                </div>
+                <div class="column right">
+                    <h3>AI Analysis Results</h3>
+                    <p>This panel shows the analysis</p>
+                    <p>Width ratio: 7/12 (58.33%)</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function updateInfo() {
+            const vw = window.innerWidth;
+            const sidebar = document.getElementById('sidebar');
+            const sidebarWidth = sidebar.classList.contains('collapsed') ? 72 : 240;
+            const available = vw - sidebarWidth;
+            const breakpoint = vw >= 900 ? 'md (side-by-side)' : 'xs/sm (stacked)';
+
+            document.getElementById('viewport').textContent = vw + 'px';
+            document.getElementById('available').textContent = available + 'px';
+            document.getElementById('breakpoint').textContent = breakpoint;
+        }
+
+        function toggleSidebar() {
+            const sidebar = document.getElementById('sidebar');
+            sidebar.classList.toggle('collapsed');
+            const width = sidebar.classList.contains('collapsed') ? '72px' : '240px';
+            document.getElementById('sidebar-width').textContent = width;
+            updateInfo();
+        }
+
+        updateInfo();
+        window.addEventListener('resize', updateInfo);
+    </script>
+</body>
+</html>

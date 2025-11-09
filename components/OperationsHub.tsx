@@ -1,163 +1,385 @@
 import React, { useState, useEffect } from 'react';
+import {
+  Alert,
+  Box,
+  Card,
+  CardContent,
+  CardHeader,
+  CircularProgress,
+  Grid,
+  List,
+  ListItem,
+  ListItemIcon,
+  ListItemText,
+  Typography,
+  Chip,
+  alpha,
+} from '@mui/material';
+import TrackChangesIcon from '@mui/icons-material/TrackChanges';
+import GroupsIcon from '@mui/icons-material/Groups';
+import AssignmentIcon from '@mui/icons-material/Assignment';
+import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import type { AnalysisResult, IncidentDetails, ImpactForecast, TeamBriefing, TrainingScenario } from '../types';
-import { generateImpactForecast, generateTeamBriefing, generateTrainingScenario } from '../services/geminiService';
-import TargetIcon from './icons/TargetIcon';
-import UsersIcon from './icons/UsersIcon';
-import ClipboardIcon from './icons/ClipboardIcon';
+import { generateImpactForecast, generateTeamBriefing, generateTrainingScenario } from '../services/apiClient';
 
 interface OperationsHubProps {
-    analysisResult: AnalysisResult | null;
-    incidentDetails: IncidentDetails | null;
+  analysisResult: AnalysisResult | null;
+  incidentDetails: IncidentDetails | null;
 }
 
 const OperationsHub: React.FC<OperationsHubProps> = ({ analysisResult, incidentDetails }) => {
-    const [forecast, setForecast] = useState<ImpactForecast | null>(null);
-    const [briefing, setBriefing] = useState<TeamBriefing | null>(null);
-    const [scenario, setScenario] = useState<TrainingScenario | null>(null);
-    const [isLoading, setIsLoading] = useState<boolean>(true);
-    const [error, setError] = useState<string | null>(null);
+  const [forecast, setForecast] = useState<ImpactForecast | null>(null);
+  const [briefing, setBriefing] = useState<TeamBriefing | null>(null);
+  const [scenario, setScenario] = useState<TrainingScenario | null>(null);
+  const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [error, setError] = useState<string | null>(null);
 
-    useEffect(() => {
-        const fetchOperationalData = async () => {
-            if (!incidentDetails || !analysisResult) return;
+  useEffect(() => {
+    const fetchOperationalData = async () => {
+      if (!incidentDetails || !analysisResult) return;
 
-            setIsLoading(true);
-            setError(null);
-            try {
-                const [forecastData, briefingData, scenarioData] = await Promise.all([
-                    generateImpactForecast(incidentDetails),
-                    generateTeamBriefing(analysisResult),
-                    generateTrainingScenario(incidentDetails),
-                ]);
-                setForecast(forecastData);
-                setBriefing(briefingData);
-                setScenario(scenarioData);
-            } catch (err) {
-                console.error(err);
-                setError(err instanceof Error ? err.message : 'Failed to load operational data.');
-            } finally {
-                setIsLoading(false);
-            }
-        };
+      setIsLoading(true);
+      setError(null);
+      try {
+        const [forecastData, briefingData, scenarioData] = await Promise.all([
+          generateImpactForecast(incidentDetails),
+          generateTeamBriefing(analysisResult),
+          generateTrainingScenario(incidentDetails),
+        ]);
+        setForecast(forecastData);
+        setBriefing(briefingData);
+        setScenario(scenarioData);
+      } catch (err) {
+        console.error('[OperationsHub] Error fetching operational data:', err);
+        setError(err instanceof Error ? err.message : 'Failed to load operational data.');
+      } finally {
+        setIsLoading(false);
+      }
+    };
 
-        fetchOperationalData();
-    }, [analysisResult, incidentDetails]);
+    fetchOperationalData();
+  }, [analysisResult, incidentDetails]);
 
-    if (!analysisResult || !incidentDetails) {
-        return (
-            <div className="flex flex-col justify-center items-center h-full text-gray-500 text-center">
-                <h2 className="text-3xl font-bold text-gray-400 mb-4">Operations Hub</h2>
-                <p className="text-lg">Please report an incident on the "Situational Awareness" page first.</p>
-                <p>Advanced operational tools will be available here once an analysis is generated.</p>
-            </div>
-        );
-    }
-    
-    if (isLoading) {
-        return (
-             <div className="flex justify-center items-center h-full">
-                <div className="text-center">
-                    <svg className="animate-spin mx-auto h-12 w-12 text-blue-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                    </svg>
-                    <p className="mt-4 text-lg text-gray-400">Generating advanced operational intelligence...</p>
-                </div>
-            </div>
-        )
-    }
-
-    if (error) {
-        return <div className="text-center text-red-400">{error}</div>
-    }
-
+  if (!analysisResult || !incidentDetails) {
     return (
-        <div className="animate-fade-in">
-            <h2 className="text-3xl font-bold text-blue-400 mb-2">Operations Hub</h2>
-            <p className="text-gray-400 mb-8">Incident: <span className="font-semibold text-gray-300">{incidentDetails.incidentType}</span> at <span className="font-semibold text-gray-300">{incidentDetails.location}</span></p>
-
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                {/* Impact Forecast */}
-                <div className="bg-gray-800 p-6 rounded-lg shadow-2xl space-y-4">
-                    <h3 className="text-xl font-bold text-yellow-400 flex items-center gap-2"><TargetIcon className="w-6 h-6" />Impact Forecast</h3>
-                    <div>
-                        <h4 className="font-semibold text-gray-300">Short-Term (0-12h)</h4>
-                        <ul className="list-disc list-inside text-gray-400 text-sm space-y-1 mt-1">
-                            {forecast?.shortTermImpacts.map((item, i) => <li key={i}>{item}</li>)}
-                        </ul>
-                    </div>
-                     <div>
-                        <h4 className="font-semibold text-gray-300">Long-Term (12-72h)</h4>
-                        <ul className="list-disc list-inside text-gray-400 text-sm space-y-1 mt-1">
-                            {forecast?.longTermImpacts.map((item, i) => <li key={i}>{item}</li>)}
-                        </ul>
-                    </div>
-                     <div>
-                        <h4 className="font-semibold text-gray-300 border-t border-gray-700 pt-3 mt-3">Community Lifelines</h4>
-                        <div className="space-y-2 mt-2 text-sm">
-                        {forecast?.communityLifelines.map((item, i) => (
-                            <div key={i} className="bg-gray-700/50 p-2 rounded">
-                                <p className="font-bold text-cyan-400">{item.lifeline}: <span className="font-normal text-gray-300">{item.impact}</span></p>
-                                <p className="text-gray-400"><span className="font-semibold">Mitigation:</span> {item.mitigation}</p>
-                            </div>
-                        ))}
-                        </div>
-                    </div>
-                </div>
-
-                {/* Team Briefing */}
-                <div className="bg-gray-800 p-6 rounded-lg shadow-2xl space-y-4">
-                    <h3 className="text-xl font-bold text-green-400 flex items-center gap-2"><UsersIcon className="w-6 h-6" />Team Briefing</h3>
-                     <div>
-                        <h4 className="font-semibold text-gray-300">Mission Statement</h4>
-                        <p className="text-gray-400 text-sm mt-1">{briefing?.missionStatement}</p>
-                    </div>
-                     <div>
-                        <h4 className="font-semibold text-gray-300">Key Objectives</h4>
-                        <ul className="list-decimal list-inside text-gray-400 text-sm space-y-1 mt-1">
-                             {briefing?.keyObjectives.map((item, i) => <li key={i}>{item}</li>)}
-                        </ul>
-                    </div>
-                    <div>
-                        <h4 className="font-semibold text-gray-300">Known Risks</h4>
-                        <ul className="list-disc list-inside text-gray-400 text-sm space-y-1 mt-1">
-                             {briefing?.knownRisks.map((item, i) => <li key={i}>{item}</li>)}
-                        </ul>
-                    </div>
-                    <div>
-                        <h4 className="font-semibold text-gray-300">Communications Plan</h4>
-                        <p className="text-gray-400 text-sm mt-1">{briefing?.commsPlan}</p>
-                    </div>
-                </div>
-
-                {/* Training Scenario */}
-                <div className="bg-gray-800 p-6 rounded-lg shadow-2xl space-y-4">
-                    <h3 className="text-xl font-bold text-purple-400 flex items-center gap-2"><ClipboardIcon className="w-6 h-6" />Training Scenario</h3>
-                     <div>
-                        <h4 className="font-semibold text-gray-300">{scenario?.scenarioTitle}</h4>
-                         <p className="text-gray-400 text-sm mt-2">{scenario?.initialBriefing}</p>
-                    </div>
-                     <div>
-                        <h4 className="font-semibold text-gray-300">Learning Objectives</h4>
-                        <ul className="list-disc list-inside text-gray-400 text-sm space-y-1 mt-1">
-                             {scenario?.learningObjectives.map((item, i) => <li key={i}>{item}</li>)}
-                        </ul>
-                    </div>
-                    <div>
-                        <h4 className="font-semibold text-gray-300 border-t border-gray-700 pt-3 mt-3">Timeline Injects</h4>
-                        <div className="space-y-2 mt-2 text-sm">
-                         {scenario?.timelineInjects.map((item, i) => (
-                             <div key={i} className="bg-gray-700/50 p-2 rounded">
-                                <p className="font-bold text-purple-300">{item.time}: <span className="font-normal text-gray-300">{item.event}</span></p>
-                                <p className="text-gray-400"><span className="font-semibold">Expected Action:</span> {item.expectedAction}</p>
-                            </div>
-                         ))}
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
+      <Alert severity="info">
+        <Typography variant="h6">Operations Hub</Typography>
+        Please report an incident on the "Situational Awareness" page first. Advanced operational tools will be available here once an analysis is generated.
+      </Alert>
     );
+  }
+
+  if (isLoading) {
+    return (
+      <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100%' }}>
+        <CircularProgress />
+        <Typography sx={{ ml: 2 }}>Generating advanced operational intelligence...</Typography>
+      </Box>
+    );
+  }
+
+  if (error) {
+    return <Alert severity="error">{error}</Alert>;
+  }
+
+  return (
+    <Box>
+      <Box sx={{ mb: 4 }}>
+        <Typography
+          variant="h4"
+          component="h1"
+          sx={{
+            fontWeight: 600,
+            background: 'linear-gradient(135deg, #6750A4 0%, #9A82DB 100%)',
+            backgroundClip: 'text',
+            WebkitBackgroundClip: 'text',
+            WebkitTextFillColor: 'transparent',
+            mb: 2,
+          }}
+        >
+          Operations Hub
+        </Typography>
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, flexWrap: 'wrap' }}>
+          <Chip
+            label={incidentDetails.incidentType}
+            color="primary"
+            sx={{ fontWeight: 500, fontSize: '0.875rem' }}
+          />
+          <Chip
+            label={incidentDetails.location}
+            variant="outlined"
+            sx={{ fontWeight: 500, fontSize: '0.875rem' }}
+          />
+          <Chip
+            label={`Severity: ${incidentDetails.severity}`}
+            color={
+              incidentDetails.severity === 'Severe' || incidentDetails.severity === 'Catastrophic'
+                ? 'error'
+                : incidentDetails.severity === 'High'
+                ? 'warning'
+                : 'success'
+            }
+            sx={{ fontWeight: 500, fontSize: '0.875rem' }}
+          />
+        </Box>
+      </Box>
+
+      <Grid container spacing={3}>
+        <Grid item xs={12} lg={4}>
+          <Card elevation={1} sx={{ height: '100%' }}>
+            <CardContent sx={{ p: 3 }}>
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mb: 3 }}>
+                <Box
+                  sx={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    width: 36,
+                    height: 36,
+                    borderRadius: 2,
+                    background: 'linear-gradient(135deg, #F9A825 0%, #FBC02D 100%)',
+                  }}
+                >
+                  <TrackChangesIcon sx={{ color: 'white', fontSize: '1.25rem' }} />
+                </Box>
+                <Typography variant="h6" sx={{ fontWeight: 600 }}>
+                  Impact Forecast
+                </Typography>
+              </Box>
+
+              <Box sx={{ mb: 3 }}>
+                <Typography variant="subtitle2" sx={{ fontWeight: 600, color: 'warning.main', mb: 1.5 }}>
+                  Short-Term (0-12h)
+                </Typography>
+                <List dense sx={{ pl: 0 }}>
+                  {forecast?.shortTermImpacts.map((item, i) => (
+                    <ListItem key={i} sx={{ px: 0, py: 0.5 }}>
+                      <ListItemIcon sx={{ minWidth: 32 }}>
+                        <CheckCircleIcon sx={{ fontSize: 18, color: 'warning.main' }} />
+                      </ListItemIcon>
+                      <ListItemText
+                        primary={item}
+                        primaryTypographyProps={{ variant: 'body2', color: 'text.secondary' }}
+                      />
+                    </ListItem>
+                  ))}
+                </List>
+              </Box>
+
+              <Box sx={{ mb: 3 }}>
+                <Typography variant="subtitle2" sx={{ fontWeight: 600, color: 'warning.dark', mb: 1.5 }}>
+                  Long-Term (12-72h)
+                </Typography>
+                <List dense sx={{ pl: 0 }}>
+                  {forecast?.longTermImpacts.map((item, i) => (
+                    <ListItem key={i} sx={{ px: 0, py: 0.5 }}>
+                      <ListItemIcon sx={{ minWidth: 32 }}>
+                        <CheckCircleIcon sx={{ fontSize: 18, color: 'warning.dark' }} />
+                      </ListItemIcon>
+                      <ListItemText
+                        primary={item}
+                        primaryTypographyProps={{ variant: 'body2', color: 'text.secondary' }}
+                      />
+                    </ListItem>
+                  ))}
+                </List>
+              </Box>
+
+              <Box>
+                <Typography variant="subtitle2" sx={{ fontWeight: 600, color: 'error.main', mb: 1.5 }}>
+                  Community Lifelines
+                </Typography>
+                {forecast?.communityLifelines.map((item, i) => (
+                  <Box
+                    key={i}
+                    sx={{
+                      mt: 1.5,
+                      p: 2,
+                      borderRadius: 2,
+                      bgcolor: alpha('#F9A825', 0.08),
+                      border: `1px solid ${alpha('#F9A825', 0.2)}`,
+                    }}
+                  >
+                    <Typography variant="subtitle2" sx={{ fontWeight: 600, mb: 0.5 }}>
+                      {item.lifeline}
+                    </Typography>
+                    <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
+                      {item.impact}
+                    </Typography>
+                    <Typography variant="caption" sx={{ fontWeight: 500, color: 'warning.dark' }}>
+                      Mitigation: {item.mitigation}
+                    </Typography>
+                  </Box>
+                ))}
+              </Box>
+            </CardContent>
+          </Card>
+        </Grid>
+
+        <Grid item xs={12} lg={4}>
+          <Card elevation={1} sx={{ height: '100%' }}>
+            <CardContent sx={{ p: 3 }}>
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mb: 3 }}>
+                <Box
+                  sx={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    width: 36,
+                    height: 36,
+                    borderRadius: 2,
+                    background: 'linear-gradient(135deg, #188038 0%, #34A853 100%)',
+                  }}
+                >
+                  <GroupsIcon sx={{ color: 'white', fontSize: '1.25rem' }} />
+                </Box>
+                <Typography variant="h6" sx={{ fontWeight: 600 }}>
+                  Team Briefing
+                </Typography>
+              </Box>
+
+              <Box sx={{ mb: 3 }}>
+                <Typography variant="subtitle2" sx={{ fontWeight: 600, color: 'success.main', mb: 1.5 }}>
+                  Mission Statement
+                </Typography>
+                <Typography variant="body2" color="text.secondary">
+                  {briefing?.missionStatement}
+                </Typography>
+              </Box>
+
+              <Box sx={{ mb: 3 }}>
+                <Typography variant="subtitle2" sx={{ fontWeight: 600, color: 'success.main', mb: 1.5 }}>
+                  Key Objectives
+                </Typography>
+                <List dense sx={{ pl: 0 }}>
+                  {briefing?.keyObjectives.map((item, i) => (
+                    <ListItem key={i} sx={{ px: 0, py: 0.5 }}>
+                      <ListItemIcon sx={{ minWidth: 32 }}>
+                        <CheckCircleIcon sx={{ fontSize: 18, color: 'success.main' }} />
+                      </ListItemIcon>
+                      <ListItemText
+                        primary={item}
+                        primaryTypographyProps={{ variant: 'body2', color: 'text.secondary' }}
+                      />
+                    </ListItem>
+                  ))}
+                </List>
+              </Box>
+
+              <Box sx={{ mb: 3 }}>
+                <Typography variant="subtitle2" sx={{ fontWeight: 600, color: 'error.main', mb: 1.5 }}>
+                  Known Risks
+                </Typography>
+                <List dense sx={{ pl: 0 }}>
+                  {briefing?.knownRisks.map((item, i) => (
+                    <ListItem key={i} sx={{ px: 0, py: 0.5 }}>
+                      <ListItemIcon sx={{ minWidth: 32 }}>
+                        <CheckCircleIcon sx={{ fontSize: 18, color: 'error.main' }} />
+                      </ListItemIcon>
+                      <ListItemText
+                        primary={item}
+                        primaryTypographyProps={{ variant: 'body2', color: 'text.secondary' }}
+                      />
+                    </ListItem>
+                  ))}
+                </List>
+              </Box>
+
+              <Box>
+                <Typography variant="subtitle2" sx={{ fontWeight: 600, color: 'success.dark', mb: 1.5 }}>
+                  Communications Plan
+                </Typography>
+                <Typography variant="body2" color="text.secondary">
+                  {briefing?.commsPlan}
+                </Typography>
+              </Box>
+            </CardContent>
+          </Card>
+        </Grid>
+
+        <Grid item xs={12} lg={4}>
+          <Card elevation={1} sx={{ height: '100%' }}>
+            <CardContent sx={{ p: 3 }}>
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mb: 3 }}>
+                <Box
+                  sx={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    width: 36,
+                    height: 36,
+                    borderRadius: 2,
+                    background: 'linear-gradient(135deg, #0B57D0 0%, #4285F4 100%)',
+                  }}
+                >
+                  <AssignmentIcon sx={{ color: 'white', fontSize: '1.25rem' }} />
+                </Box>
+                <Typography variant="h6" sx={{ fontWeight: 600 }}>
+                  Training Scenario
+                </Typography>
+              </Box>
+
+              <Box sx={{ mb: 3 }}>
+                <Typography variant="subtitle1" sx={{ fontWeight: 600, color: 'info.main', mb: 1 }}>
+                  {scenario?.scenarioTitle}
+                </Typography>
+                <Typography variant="body2" color="text.secondary">
+                  {scenario?.initialBriefing}
+                </Typography>
+              </Box>
+
+              <Box sx={{ mb: 3 }}>
+                <Typography variant="subtitle2" sx={{ fontWeight: 600, color: 'info.main', mb: 1.5 }}>
+                  Learning Objectives
+                </Typography>
+                <List dense sx={{ pl: 0 }}>
+                  {scenario?.learningObjectives.map((item, i) => (
+                    <ListItem key={i} sx={{ px: 0, py: 0.5 }}>
+                      <ListItemIcon sx={{ minWidth: 32 }}>
+                        <CheckCircleIcon sx={{ fontSize: 18, color: 'info.main' }} />
+                      </ListItemIcon>
+                      <ListItemText
+                        primary={item}
+                        primaryTypographyProps={{ variant: 'body2', color: 'text.secondary' }}
+                      />
+                    </ListItem>
+                  ))}
+                </List>
+              </Box>
+
+              <Box>
+                <Typography variant="subtitle2" sx={{ fontWeight: 600, color: 'info.dark', mb: 1.5 }}>
+                  Timeline Injects
+                </Typography>
+                {scenario?.timelineInjects.map((item, i) => (
+                  <Box
+                    key={i}
+                    sx={{
+                      mt: 1.5,
+                      p: 2,
+                      borderRadius: 2,
+                      bgcolor: alpha('#0B57D0', 0.08),
+                      border: `1px solid ${alpha('#0B57D0', 0.2)}`,
+                    }}
+                  >
+                    <Typography variant="subtitle2" sx={{ fontWeight: 600, color: 'info.main', mb: 0.5 }}>
+                      {item.time}
+                    </Typography>
+                    <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
+                      {item.event}
+                    </Typography>
+                    <Typography variant="caption" sx={{ fontWeight: 500, color: 'info.dark' }}>
+                      Expected Action: {item.expectedAction}
+                    </Typography>
+                  </Box>
+                ))}
+              </Box>
+            </CardContent>
+          </Card>
+        </Grid>
+      </Grid>
+    </Box>
+  );
 };
 
 export default OperationsHub;
